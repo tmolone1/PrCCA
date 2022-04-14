@@ -1,0 +1,26 @@
+[general]
+creator=R package 'raster'
+created=2022-04-14 14:44:28
+[georeference]
+nrows=68
+ncols=105
+xmin=-104.510733551
+ymin=42.299949636
+xmax=-103.956745355
+ymax=42.661241578
+projection=+proj=longlat +datum=WGS84 +no_defs
+[data]
+datatype=FLT4S
+byteorder=little
+nbands=1
+bandorder=BIL
+categorical=FALSE
+minvalue=941.091620479427
+maxvalue=5413.7004577904
+nodatavalue=-3.4e+38
+[legend]
+legendtype=
+values=
+color=
+[description]
+layername=transmissivity2

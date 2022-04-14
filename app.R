@@ -42,12 +42,12 @@ ui <- fluidPage(
                    "estimated saturated thickness (ft):",
                    min = 1,
                    max = 1000,
-                   value = 280),
+                   value = 285),
       numericInput("k",
                    "estimated hydraulic conductivity (ft/d):",
                    min = 0,
                    max = 100000,
-                   value = 4.775),
+                   value = 4.81978),
       sliderInput("t",
                    "time since pumping began (days):",
                    min = 0,
@@ -61,7 +61,7 @@ ui <- fluidPage(
       sliderInput("Q",
                   "Pumping Rate (gpm):",
                   min = 0,
-                  max = 5000,
+                  max = 1000,
                   value = 900),
       numericInput("r",
                   "User specified distance of interest (ft):",
@@ -113,7 +113,7 @@ server <- function(input, output) {
   
   output$text<-renderText({
     Tprime<-input$k*input$b*7.28
-    paste0("Transmissivity = ", Tprime, " gpd/ft or ", input$k*input$b, " ft2/d")
+    paste0("Transmissivity = ", round(Tprime,0), " gpd/ft or ", round(input$k*input$b,0), " ft2/d")
   })
 }
 
