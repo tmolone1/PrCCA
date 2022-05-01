@@ -4,7 +4,11 @@ well_fxn <- function(u, nterms) {
   ui<- -1*(u^i)/(i*factorial(i))
   up<- (u^p)/(p*factorial(p))       
   wu <- -0.57721566 - log(u) + u + sum(ui) + sum(up)
+  if (is.na(wu)) {
+    return(0)
+  } else {
   return(wu)
+  }
 }
 
 list_well_fxn <- function (listu, nterms) {
