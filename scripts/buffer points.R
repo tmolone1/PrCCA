@@ -1,9 +1,7 @@
 
 library(sf)
-library(plotKML)
 library(sp)
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
 source("./scripts/Functions.R")
 
 # read data on applications (manually compiled from e-Permit by T Moloney 1/19/2022)
@@ -27,7 +25,7 @@ buff_2640<-st_buffer(pts.transform,2640)
 buff_3960<-st_buffer(pts.transform,3960)
 buff_5280<-st_buffer(pts.transform,5280)
 
-buff<-rbind(buff_100,buff_500,buff_1320,buff_2640,buff_3960, buff_5280)
+#buff<-rbind(buff_100,buff_500,buff_1320,buff_2640,buff_3960, buff_5280)
 
 henry_results<-read_csv("./outputs/images/Henry/result_tbl.csv")
 oliver_results<-read_csv("./outputs/images/Oliver/result_tbl.csv")
@@ -35,10 +33,12 @@ a<-0
 for (i in 1:6) {
   a<-c(a,henry_results$mean_drawdown_20_yrs[i],oliver_results$mean_drawdown_20_yrs[i])
 }
-buff <- buff  %>% mutate(drawdwon=a[2:13])
+buff <- buff  %>% mutate(drawdown_3=a[2:13])
+# pause here and rerun dd_extended.R to recacluate other scenario and rerun the section of this code between
+# this comment and the one above it.
+buff <- buff  %>% mutate(drawdown_4=a[2:13])
 
-
-sf::st_write(buff, "./outputs/all_buffers.shp")
+sf::st_write(buff, "./outputs/all_buffers.shp", append=FALSE)
 
 
 plot(buff$geometry)

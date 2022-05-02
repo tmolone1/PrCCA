@@ -13,11 +13,11 @@ for(name in c("Oliver", "Henry")) {
   names(result_tbl)<-c("distance_feet","mean_drawdown_20_yrs")
 for (r in c(100, 500, 1320, 2640, 3960, 5280)) {
 if (name=="Henry") {S<-0.125 } else {S<-0.175}
-tprime<-95  # days to run pumping per year
+tprime<-95# days to run pumping per year
 yrs<-20
 T<-250*1.66
 Q<-950*192.5
-s<-(Q/(4*pi*T)) * (Wu - Wu2)
+#s<-(Q/(4*pi*T)) * (Wu - Wu2)
 breaks<-alt_seq(tprime,yrs)
 tshort<-seq(5,365,5)
 tlong<-seq(5,365*yrs,5)
@@ -43,9 +43,9 @@ for (i in tshort) {
 df<-tibble(tshort, new_vec) %>% mutate(s = (Q/(4*pi*T)) * new_vec)
 names(df)<-c("time","Wu", 's')
 
-sprime<-as.numeric((df %>% filter(time==max(time)) %>% select(s)))
+sprime<-as.numeric((df %>% filter(time==max(time)) %>% dplyr::select(s)))
 
-tbl<-as.data.frame(cbind(tlong,floor(tlong/365),df$time, df$s))
+tbl<-as.data.frame(cbind(tlong,floor(tlong/365.01),df$time, df$s))
 names(tbl)<-c("days","yrs","day_of_year", "s_raw")
 tbl<-tbl %>% mutate(s=s_raw+yrs*sprime)
 
@@ -53,8 +53,9 @@ tbl<-tbl %>% mutate(s=s_raw+yrs*sprime)
 #ggplot(df, aes(x=time,y=-s)) + geom_point() + geom_line()
 
 
-p<-ggplot(tbl, aes(x=days,y=-s)) + geom_point() + geom_line()
-#p
+p<-ggplot(tbl, aes(x=days,y=-s)) + geom_point() + geom_line() +
+  ggtitle(paste0(tprime, " days operating annually, ",signif((tprime*1440*950)/7.48/43560,2), " AF annual cap\n",name, " Location, ", r, " feet distant"))
+p
 ggsave(filename=paste0(r,".jpg"), path=paste0("./outputs/images/",name),plot = p, width = 5, height = 3, units="in")
 
 tbl<-tibble(tbl)
