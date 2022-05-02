@@ -7,9 +7,12 @@ alt_seq <- function (days,yrs) {
   return(b)
 }
 
+for(name in c("Oliver", "Henry")) {
+  idx=1
+  result_tbl<-tibble(c(100, 500, 1320, 2640, 3960, 5280),5) 
+  names(result_tbl)<-c("distance_feet","mean_drawdown_20_yrs")
 for (r in c(100, 500, 1320, 2640, 3960, 5280)) {
-
-S<-0.125
+if (name=="Henry") {S<-0.125 } else {S<-0.175}
 tprime<-95  # days to run pumping per year
 yrs<-20
 T<-250*1.66
@@ -51,8 +54,15 @@ tbl<-tbl %>% mutate(s=s_raw+yrs*sprime)
 
 
 p<-ggplot(tbl, aes(x=days,y=-s)) + geom_point() + geom_line()
-p
-ggsave(paste0("outputs/images/",r,".jpg"), plot = p, width = 5, height = 3, units="in")
+#p
+ggsave(filename=paste0(r,".jpg"), path=paste0("./outputs/images/",name),plot = p, width = 5, height = 3, units="in")
+
+tbl<-tibble(tbl)
+  s_final_mean<-tbl %>% filter(yrs>=19) %>% summarize(mean=mean(s))
+  result_tbl$mean_drawdown_20_yrs[idx]<-s_final_mean$mean
+  idx=idx+1
+}
+  write_csv(result_tbl,file = paste0("./outputs/images/",name,"/result_tbl.csv"))
 }
 
 
