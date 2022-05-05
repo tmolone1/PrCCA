@@ -1,4 +1,5 @@
 library(tidyverse)
+source('well_fxn_script.R')
 
 alt_seq <- function (days,yrs) {
   intervals <- c(days,365)
@@ -13,15 +14,20 @@ for(name in c("Oliver", "Henry")) {
   names(result_tbl)<-c("distance_feet","mean_drawdown_20_yrs")
 for (r in c(100, 500, 1320, 2640, 3960, 5280)) {
 if (name=="Henry") {S<-0.125 } else {S<-0.175}
-tprime<-60# days to run pumping per year
+tprime<-95# days to run pumping per year
 yrs<-20
-T<-250*1.66
+b<-600
+T<-b*1.66
 Q<-950*192.5
 #s<-(Q/(4*pi*T)) * (Wu - Wu2)
 breaks<-alt_seq(tprime,yrs)
 tshort<-seq(5,365,5)
 tlong<-seq(5,365*yrs,5)
+tlong<-tibble(tlong)
+tlong<-tlong %>% mutate(Wu=999, s=999, saturated_production_interval=999)
+names(tlong)<-c("time","Wu","s", "saturated_production_interval")
 new_vec<-vector(mode="numeric", length=length(tshort))
+for (yr in 0:(yrs-1)) {
 j<-1
 for (i in tshort) {
   if (i <= tprime) {
@@ -37,30 +43,33 @@ for (i in tshort) {
     new_vec[j] <- Wu-Wu2
     j=j+1
   }
-  
+ df<-tibble(tshort+yr*365, new_vec) %>% mutate(s = (Q/(4*pi*T)) * new_vec, saturated_production_interval=b-((Q/(4*pi*T)) * new_vec))
+names(df)<-c("time","Wu", 's', 'saturated_production_interval')
 }
 
-df<-tibble(tshort, new_vec) %>% mutate(s = (Q/(4*pi*T)) * new_vec)
-names(df)<-c("time","Wu", 's')
-
 sprime<-as.numeric((df %>% filter(time==max(time)) %>% dplyr::select(s)))
+b<-b-sprime
+T<-b*1.66
+tlong<-dplyr::rows_upsert(tlong, df, by="time")
+#print(c(yr, T, b))
+}
 
-tbl<-as.data.frame(cbind(tlong,floor(tlong/365.01),df$time, df$s))
-names(tbl)<-c("days","yrs","day_of_year", "s_raw")
-tbl<-tbl %>% mutate(s=s_raw+yrs*sprime)
-
-# one year drawdown plot
-#ggplot(df, aes(x=time,y=-s)) + geom_point() + geom_line()
+tlong<-tlong %>% mutate(yr=floor(time/365.01))
 
 
-p<-ggplot(tbl, aes(x=days,y=-s)) + geom_point() + geom_line() +
+#one year drawdown plot
+#ggplot(tlong %>% filter(yr==0), aes(x=time,y=saturated_production_interval)) + geom_point() + geom_line()
+
+
+p<-ggplot(tlong, aes(x=time,y=saturated_production_interval)) + geom_point() + geom_line() +
   ggtitle(paste0(tprime, " days operating annually, ",signif((tprime*1440*950)/7.48/43560,2), " AF annual cap\n",name, " Location, ", r, " feet distant"))
-#p
+p
 ggsave(filename=paste0(name,"_",r,".pdf"), path=paste0("./outputs/images/",name),plot = p, width = 5, height = 3, units="in")
 
-tbl<-tibble(tbl)
-  s_final_mean<-tbl %>% filter(yrs>=19) %>% summarize(mean=mean(s))
-  result_tbl$mean_drawdown_20_yrs[idx]<-s_final_mean$mean
+
+original_sat_thick<-tlong %>% filter(time==min(time)) %>% dplyr::select(saturated_production_interval)
+  s_final_mean<-tlong %>% filter(yr==max(yr)) %>% summarize(mean=mean(saturated_production_interval))
+  result_tbl$mean_drawdown_20_yrs[idx]<-original_sat_thick$saturated_production_interval-s_final_mean$mean
   idx=idx+1
 }
   write_csv(result_tbl,file = paste0("./outputs/images/",name,"/result_tbl.csv"))
